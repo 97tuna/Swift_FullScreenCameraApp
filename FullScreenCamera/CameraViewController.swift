@@ -98,21 +98,60 @@ extension CameraViewController {
         // - Add Photo Output
         // - commitConfiguration
         
-
+        captureSession.sessionPreset = .photo
+        captureSession.beginConfiguration() // 나 구성 시작할거야! 알리기
         
+        // ADD VideoInput
+        var defaultVideoDevice: AVCaptureDevice?
         
+        guard let camera = videoDeviceDiscoverySession.devices.first else {
+            captureSession.commitConfiguration()
+            return
+        }
+        do {
+            let videoDeviceInput = try AVCaptureDeviceInput(device: camera)
+            if captureSession.canAddInput(videoDeviceInput) {
+                captureSession.addInput(videoDeviceInput)
+            } else {
+                captureSession.commitConfiguration()
+                return
+            }
+        } catch let error {
+            captureSession.commitConfiguration()
+            return
+        }
+        
+        // ADD Photo Output
+        photoOutput.setPreparedPhotoSettingsArray([AVCapturePhotoSettings(format: [AVVideoCodecKey: AVVideoCodecType.jpeg])], completionHandler: nil) // 어떤 포맷으로 저장할 지
+        
+        if captureSession.canAddOutput(photoOutput) {
+            captureSession.addOutput(photoOutput)
+        } else {
+            captureSession.commitConfiguration()
+            return
+        }
+        
+        captureSession.commitConfiguration() //  구성 끝!
     }
     
     
     
     func startSession() {
         // TODO: session Start
-
+        sessionQueue.async {
+            if !self.captureSession.isRunning {
+                self.captureSession.startRunning()
+            }
+        }
     }
     
     func stopSession() {
         // TODO: session Stop
-        
+        sessionQueue.async {
+            if self.captureSession.isRunning {
+                self.captureSession.stopRunning()
+            }
+        }
     }
 }
 
