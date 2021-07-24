@@ -12,7 +12,18 @@ import Photos
 
 class CameraViewController: UIViewController {
     // TODO: 초기 설정 1
+    // MARK: CaptureSession
+    // MARK: AVCaptureDeviceInput
+    // MARK: AVCapturePhotoOutput
+    // MARK: DispatchQueue
+    // MARK: AVCaptureDevice -> 카메라 찾아주는 것.
     
+    let captureSession = AVCaptureSession()
+    var videoDeviceInput: AVCaptureDeviceInput! // 혼자 객체가아닌 나중에 디바이스 넣어줄 것이라 var로 설정. 카메라 토글 시키기 위해서
+    let photoOutput = AVCapturePhotoOutput()
+    
+    let sessionQueue = DispatchQueue(label: "sesstion Queue")
+    let videoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInDualCamera, .builtInWideAngleCamera, .builtInTrueDepthCamera], mediaType: .video, position: .unspecified) // 앞에꺼인지, 뒤에꺼인지 아직 안정해서
 
     @IBOutlet weak var photoLibraryButton: UIButton!
     @IBOutlet weak var previewView: PreviewView!
@@ -27,12 +38,26 @@ class CameraViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // TODO: 초기 설정 2
-        
-        
+        previewView.session = captureSession // 이렇게 연결 시키기
+        sessionQueue.async {
+            self.setupSession()
+            self.startSession()
+        }
+        setupUI()
     }
     
     func setupUI() {
-
+        photoLibraryButton.layer.cornerRadius = 10
+        photoLibraryButton.layer.masksToBounds = true // 짤린건 마스킹 하겠다.
+        photoLibraryButton.layer.borderColor = #colorLiteral(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
+        photoLibraryButton.layer.borderWidth = 1
+        
+        captureButton.layer.cornerRadius = captureButton.bounds.height / 2
+        captureButton.layer.masksToBounds = true
+        
+        blurBGView.layer.cornerRadius = captureButton.bounds.height / 2
+        blurBGView.layer.masksToBounds = true
+        
     }
     
     
